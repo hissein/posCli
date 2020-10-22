@@ -142,8 +142,6 @@ public class PoscliPlugin implements FlutterPlugin, MethodCallHandler, ActivityA
       new Thread(new Runnable() {
         @Override
         public void run() {
-          Process.setThreadPriority(-20);
-
           setting.prnBitmap(newbitmap);
           setting.prnStart();
         }}).start();

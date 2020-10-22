@@ -52,7 +52,6 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.annotation:annotation:1.1.0'
-    implementation 'org.jetbrains:annotations-java5:19.0.0'
+   
     implementation files('libs/POS2.9.7.190917.jar')
 }
