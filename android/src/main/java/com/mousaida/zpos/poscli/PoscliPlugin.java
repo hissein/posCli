@@ -17,7 +17,6 @@ import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
-import org.jetbrains.annotations.NotNull;
 
 /** PoscliPlugin */
 public class PoscliPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware {
@@ -83,7 +82,7 @@ public class PoscliPlugin implements FlutterPlugin, MethodCallHandler, ActivityA
   }
 
   @Override
-  public void onAttachedToActivity(@NonNull @NotNull ActivityPluginBinding activityPluginBinding) {
+  public void onAttachedToActivity(@NonNull  ActivityPluginBinding activityPluginBinding) {
     this.activity = activityPluginBinding.getActivity();
 
   }
@@ -94,7 +93,7 @@ public class PoscliPlugin implements FlutterPlugin, MethodCallHandler, ActivityA
   }
 
   @Override
-  public void onReattachedToActivityForConfigChanges(@NonNull @NotNull ActivityPluginBinding activityPluginBinding) {
+  public void onReattachedToActivityForConfigChanges(@NonNull  ActivityPluginBinding activityPluginBinding) {
 
   }
 
@@ -143,11 +142,16 @@ public class PoscliPlugin implements FlutterPlugin, MethodCallHandler, ActivityA
         @Override
         public void run() {
           setting.prnBitmap(newbitmap);
+          setting.prnStr("\n");
           setting.prnStart();
+          System.out.print("this is status: ");
+          System.out.println(  setting.prnStatus());
         }}).start();
     }catch(Exception e){
       e.printStackTrace();
     }
+
+
 
     return  true;
 
