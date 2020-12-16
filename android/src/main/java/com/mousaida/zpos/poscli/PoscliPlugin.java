@@ -1,14 +1,24 @@
 package com.mousaida.zpos.poscli;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
 import android.util.Base64;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 
-import com.imagpay.Settings;
-import com.imagpay.mpos.MposHandler;
+import com.lvrenyang.io.Pos;
+import com.lvrenyang.io.USBPrinting;
+
+import java.util.HashMap;
+import java.util.Iterator;
+
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
@@ -20,19 +30,30 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 /** PoscliPlugin */
 public class PoscliPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware {
+  public static int nPrintWidth = 384;
+  public static boolean bCutter = false;
+  public static boolean bDrawer = false;
+  public static boolean bBeeper = true;
+  public static int nPrintCount = 1;
+  public static int nCompressMethod = 0;
+  public static boolean bAutoPrint = false;
+  public static int nPrintContent = 0;
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
   /// when the Flutter Engine is detached from the Activity
   private MethodChannel channel;
-  private MposHandler handler;
-  private Settings setting;
   private Activity activity;
   private Context context;
+  Pos pos = new Pos();
+  USBPrinting mUsb;
 
   @Override
   public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
     channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "poscli");
+    this.pos = new Pos();
+    this.mUsb = new USBPrinting();
+    this.pos.Set(this.mUsb);
     this.context = flutterPluginBinding.getApplicationContext();
     channel.setMethodCallHandler(this);
   }
@@ -40,7 +61,7 @@ public class PoscliPlugin implements FlutterPlugin, MethodCallHandler, ActivityA
   @Override
   public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
     if (call.method.equals("initSdk")) {
-      result.success(initSdk());
+      result.success(initSdk2());
     } else if (call.method.equals("printTicket")) {
       String file = call.argument("file");
       result.success(printTicketBit(file));
@@ -49,32 +70,14 @@ public class PoscliPlugin implements FlutterPlugin, MethodCallHandler, ActivityA
     }
   }
 
-  public boolean initSdk() {
-    handler = MposHandler.getInstance(this.activity);
-    handler.setShowLog(true);
-    // add linstener for connection
-    //handler.addSwipeListener(this);
-    setting = Settings.getInstance(handler);
-    // power on the device when you need to read card or print
-    setting.mPosPowerOn();
-    try {
-      // for 90,delay 1S and then connect
-      // Thread.sleep(1000);
-      // connect device via serial port
-      if (!handler.isConnected()) {
-        System.out.println("Connect Res:" + handler.connect());
-      } else {
-        handler.close();
-        System.out.println("ReConnect Res:" + handler.connect());
-      }
-    } catch (Exception e) {
-      System.out.println(e.getMessage());
-      return false;
-
-    }
-    return true;
-  }
-
+   public boolean initSdk2() {
+     try {
+       initSdk(this.activity);
+       return true;
+     } catch (Exception e) {
+       throw e;
+     }
+   }
 
   @Override
   public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
@@ -103,8 +106,39 @@ public class PoscliPlugin implements FlutterPlugin, MethodCallHandler, ActivityA
   }
 
 
+  public void initSdk(final Activity context) {
+    final UsbManager mUsbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
 
+    HashMap<String, UsbDevice> deviceList = mUsbManager.getDeviceList();
+    Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
+    if (deviceList.size() > 0) {
+        final UsbDevice device = deviceIterator.next();
+        PendingIntent mPermissionIntent = PendingIntent
+                .getBroadcast(
+                        context,
+                        0,
+                        new Intent(
+                                context.getApplicationInfo().packageName),
+                        0);
 
+        if (!mUsbManager.hasPermission(device)) {
+          mUsbManager.requestPermission(device,
+                  mPermissionIntent);
+          Toast.makeText(context,
+                  "Permission refusé", Toast.LENGTH_LONG)
+                  .show();
+        } else {
+          Toast.makeText(context, "Connecting...", Toast.LENGTH_SHORT).show();
+          try {
+             TaskOpen(mUsb, mUsbManager, device);
+          }
+          catch (Exception e) {
+            throw e;
+          }
+        }
+
+    }
+  }
   private static Bitmap resize(Bitmap image, int maxWidth, int maxHeight) {
     if (maxHeight > 0 && maxWidth > 0) {
       int width = image.getWidth();
@@ -134,27 +168,16 @@ public class PoscliPlugin implements FlutterPlugin, MethodCallHandler, ActivityA
     opt.inInputShareable = true;
     Bitmap bitmap=  BitmapFactory.decodeByteArray(bytes, 0, bytes.length,opt);
 
-    final Bitmap newbitmap=  resize(bitmap,342, bitmap.getHeight()+100);
-    try {
-
-
-      new Thread(new Runnable() {
-        @Override
-        public void run() {
-          setting.prnBitmap(newbitmap);
-          setting.prnStr("\n");
-          setting.prnStart();
-          System.out.print("this is status: ");
-          System.out.println(  setting.prnStatus());
-        }}).start();
-    }catch(Exception e){
-      e.printStackTrace();
-    }
-
-
+    final Bitmap newbitmap=  resize(bitmap,384, bitmap.getHeight()+100);
+    pos.POS_PrintPicture(newbitmap,384, 0, 0);
+    final boolean bIsOpened = pos.GetIO().IsOpened();
 
     return  true;
 
 
+  }
+  public void TaskOpen(USBPrinting usb, UsbManager usbManager, UsbDevice usbDevice)
+  {
+    usb.Open(usbManager,usbDevice,this.context);
   }
 }

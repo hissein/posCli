@@ -6,7 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:poscli/poscli.dart';
-import 'package:poscli_example/ticket.dart';
+import 'ticket.dart';
 import 'widget/card_widget.dart';
 import 'widget/title_widget.dart';
 import 'widget/utils.dart';
@@ -41,7 +41,8 @@ class _MyAppState extends State<MyApp> {
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
     String platformVersion;
-    bool init, print;
+    bool init;
+    bool print;
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       init = await Poscli.initSdk();
@@ -56,7 +57,7 @@ class _MyAppState extends State<MyApp> {
 
     setState(() {
       _platformVersion = platformVersion;
-      _init = init;
+      _init = init as bool;
       _print = print;
     });
   }

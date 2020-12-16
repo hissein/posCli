@@ -18,11 +18,6 @@ class Header extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Image.asset(
-          image,
-          color: Colors.black,
-          width: size * 20,
-        ),
         Column(
           children: [
             Text(

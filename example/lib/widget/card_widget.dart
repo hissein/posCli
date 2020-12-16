@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:poscli_example/widget/utils.dart';
-
+import 'package:poscli/utils/utils.dart';
 import '../ticket.dart';
 import 'CopyRight.dart';
 import 'TicketGenerate.dart';

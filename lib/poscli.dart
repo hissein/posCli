@@ -1,15 +1,13 @@
-
 import 'dart:async';
 
 import 'package:flutter/services.dart';
 
 class Poscli {
-  static const MethodChannel _channel =
-      const MethodChannel('poscli');
+  static const MethodChannel _channel = const MethodChannel('poscli');
   static Future<bool> initSdk() async {
     bool init = false;
     try {
-      init = await _channel.invokeMethod('initSdk');
+      await _channel.invokeMethod('initSdk');
     } catch (e) {
       throw e;
     }

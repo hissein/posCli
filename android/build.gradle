@@ -39,7 +39,7 @@ android {
         abi {
             enable true
             reset()
-            include '*'
+            include 'x86', 'x86_64', 'armeabi', 'armeabi-v7a', 'arm64-v8a'
         }
     }
 
@@ -53,5 +53,6 @@ android {
 
 dependencies {
    
-    implementation files('libs/POS2.9.7.190917.jar')
+//    implementation files('libs\\flutter.jar')
+    implementation files('libs\\printerlibs.jar')
 }
